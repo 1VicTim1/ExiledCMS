@@ -121,7 +121,7 @@ export async function proxyAuthenticatedJson(
     if (upstream.ok) {
       try {
         const json = JSON.parse(body) as AuthUserProfile;
-        applyProfileCookies(response, json);
+        applyProfileCookies(response, json, undefined, { request });
       } catch {
         // Ignore non-profile responses.
       }
@@ -137,7 +137,10 @@ export async function proxyAuthenticatedJson(
   }
 }
 
-export async function loginAndPersistSession(payload: { email: string; password: string; totpCode?: string }) {
+export async function loginAndPersistSession(
+  request: NextRequest,
+  payload: { email: string; password: string; totpCode?: string },
+) {
   const upstream = await authJsonRequest("/api/v1/auth/login", {
     method: "POST",
     headers: {
@@ -160,7 +163,7 @@ export async function loginAndPersistSession(payload: { email: string; password:
     },
   });
 
-  applyAuthSession(response, login);
+  applyAuthSession(response, login, { request });
   return {
     ok: true as const,
     response,
@@ -168,7 +171,7 @@ export async function loginAndPersistSession(payload: { email: string; password:
   };
 }
 
-export function logoutResponse() {
+export function logoutResponse(request: NextRequest) {
   return clearAuthSession(
     NextResponse.json(
       { success: true },
@@ -178,5 +181,6 @@ export function logoutResponse() {
         },
       },
     ),
+    { request },
   );
 }

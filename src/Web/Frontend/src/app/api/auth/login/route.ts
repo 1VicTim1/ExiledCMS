@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const result = await loginAndPersistSession({
+    const result = await loginAndPersistSession(request, {
       email: payload.email?.trim() ?? "",
       password: payload.password ?? "",
       totpCode: payload.totpCode?.trim(),

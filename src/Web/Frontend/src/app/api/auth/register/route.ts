@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
     return jsonProblem(await readProblem(registerResponse), registerResponse.status);
   }
 
-  const login = await loginAndPersistSession({
+  const login = await loginAndPersistSession(request, {
     email: payload.email?.trim() ?? "",
     password: payload.password ?? "",
   });

@@ -2,7 +2,6 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using ExiledCms.AuthService.Api.Domain;
-using Microsoft.Extensions.Options;
 
 namespace ExiledCms.AuthService.Api.Infrastructure;
 
@@ -185,18 +184,18 @@ public sealed class TotpService
 // Microsoft.IdentityModel.Tokens is mechanical.
 public sealed class JwtIssuer
 {
-    private readonly IOptions<JwtOptions> _options;
+    private readonly JwtRuntimeOptionsAccessor _optionsAccessor;
 
-    public JwtIssuer(IOptions<JwtOptions> options)
+    public JwtIssuer(JwtRuntimeOptionsAccessor optionsAccessor)
     {
-        _options = options;
+        _optionsAccessor = optionsAccessor;
     }
 
     public sealed record IssuedToken(string Token, DateTime ExpiresAtUtc);
 
     public IssuedToken Issue(User user, IReadOnlyCollection<string> roles, IReadOnlyCollection<string> permissions)
     {
-        var opts = _options.Value;
+        var opts = _optionsAccessor.GetCurrent();
         if (string.IsNullOrWhiteSpace(opts.Secret))
         {
             throw new InvalidOperationException("Jwt.Secret is not configured.");
@@ -232,7 +231,7 @@ public sealed class JwtIssuer
     public bool TryValidate(string token, out IReadOnlyDictionary<string, JsonElement> claims)
     {
         claims = new Dictionary<string, JsonElement>();
-        var opts = _options.Value;
+        var opts = _optionsAccessor.GetCurrent();
         if (string.IsNullOrWhiteSpace(token) || string.IsNullOrWhiteSpace(opts.Secret))
         {
             return false;

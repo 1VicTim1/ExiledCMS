@@ -21,13 +21,7 @@ public sealed class AuthSecurityAndUserServiceTests
     [Fact]
     public void JwtIssuer_IssueAndValidate_RoundTrips()
     {
-        var issuer = new JwtIssuer(Options.Create(new JwtOptions
-        {
-            Secret = "test-secret-value",
-            Issuer = "ExiledCMS",
-            Audience = "exiledcms",
-            AccessTokenLifetimeMinutes = 5,
-        }));
+        var issuer = CreateJwtIssuer();
 
         var token = issuer.Issue(
             CreateUser(),
@@ -191,6 +185,18 @@ public sealed class AuthSecurityAndUserServiceTests
             repository,
             new PasswordHasher(),
             new TotpService(),
+            CreateJwtOptionsAccessor());
+    }
+
+    private static JwtIssuer CreateJwtIssuer()
+    {
+        return new JwtIssuer(CreateJwtOptionsAccessor());
+    }
+
+    private static JwtRuntimeOptionsAccessor CreateJwtOptionsAccessor()
+    {
+        return new JwtRuntimeOptionsAccessor(
+            new ModuleRuntimeConfigurationStore(),
             Options.Create(new JwtOptions
             {
                 Secret = "test-secret-value",

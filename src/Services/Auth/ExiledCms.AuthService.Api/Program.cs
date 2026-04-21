@@ -15,6 +15,8 @@ builder.AddExiledCmsPlatformCoreLogging();
 builder.Services.Configure<AuthServiceOptions>(builder.Configuration.GetSection("Auth"));
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
 builder.Services.Configure<PlatformCoreOptions>(builder.Configuration.GetSection("PlatformCore"));
+builder.Services.Configure<NatsOptions>(builder.Configuration.GetSection("Nats"));
+builder.Services.Configure<ModuleConfigSyncOptions>(builder.Configuration.GetSection("ModuleConfigSync"));
 builder.Services.PostConfigure<JwtOptions>(options =>
 {
     if (!string.IsNullOrWhiteSpace(options.Secret))
@@ -25,13 +27,13 @@ builder.Services.PostConfigure<JwtOptions>(options =>
     if (builder.Environment.IsDevelopment())
     {
         options.Secret = Convert.ToHexString(RandomNumberGenerator.GetBytes(48));
-        return;
     }
-
-    throw new InvalidOperationException("Jwt:Secret must be configured outside Development.");
 });
 
 builder.Services.AddHttpClient(nameof(PlatformCoreRegistrationService));
+builder.Services.AddSingleton<ModuleRuntimeConfigurationStore>();
+builder.Services.AddSingleton<JwtRuntimeOptionsAccessor>();
+builder.Services.AddSingleton<PlatformCoreModuleConfigSyncService>();
 builder.Services.AddSingleton<MySqlConnectionFactory>();
 builder.Services.AddSingleton<SqlMigrationRunner>();
 builder.Services.AddSingleton<PasswordHasher>();
@@ -39,6 +41,7 @@ builder.Services.AddSingleton<TotpService>();
 builder.Services.AddSingleton<JwtIssuer>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddHostedService(static serviceProvider => serviceProvider.GetRequiredService<PlatformCoreModuleConfigSyncService>());
 builder.Services.AddHostedService<PlatformCoreRegistrationService>();
 builder.Services.AddProblemDetails();
 builder.Services.AddControllers();
@@ -81,6 +84,17 @@ app.UseMiddleware<BearerAuthMiddleware>();
 
 await using (var scope = app.Services.CreateAsyncScope())
 {
+    var configSync = scope.ServiceProvider.GetRequiredService<PlatformCoreModuleConfigSyncService>();
+    var startupLogger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("Startup");
+    try
+    {
+        await configSync.BootstrapAsync(CancellationToken.None);
+    }
+    catch (Exception exception)
+    {
+        startupLogger.LogWarning(exception, "Initial platform-core config bootstrap failed; continuing with local fallback configuration if available");
+    }
+
     var migrationRunner = scope.ServiceProvider.GetRequiredService<SqlMigrationRunner>();
     await migrationRunner.ApplyAsync(CancellationToken.None);
 }
@@ -99,12 +113,16 @@ app.MapGet("/healthz", () => Results.Ok(new
     time = DateTime.UtcNow,
 }));
 
-app.MapGet("/readyz", (IOptions<AuthServiceOptions> options) =>
+app.MapGet("/readyz", (IOptions<AuthServiceOptions> options, JwtRuntimeOptionsAccessor jwtOptionsAccessor, ModuleRuntimeConfigurationStore configurationStore) =>
 {
-    var databaseConfigured = !string.IsNullOrWhiteSpace(options.Value.MySqlConnectionString);
-    return databaseConfigured
-        ? Results.Ok(new { status = "ready", databaseConfigured })
-        : Results.Json(new { status = "degraded", databaseConfigured }, statusCode: StatusCodes.Status503ServiceUnavailable);
+    var databaseConfigured =
+        !string.IsNullOrWhiteSpace(configurationStore.GetDatabaseConnectionStringOrNull()) ||
+        !string.IsNullOrWhiteSpace(options.Value.MySqlConnectionString);
+    var jwtConfigured = !string.IsNullOrWhiteSpace(jwtOptionsAccessor.GetCurrent().Secret);
+    var isReady = databaseConfigured && jwtConfigured;
+    return isReady
+        ? Results.Ok(new { status = "ready", databaseConfigured, jwtConfigured })
+        : Results.Json(new { status = "degraded", databaseConfigured, jwtConfigured }, statusCode: StatusCodes.Status503ServiceUnavailable);
 });
 
 app.MapControllers();

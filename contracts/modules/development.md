@@ -155,12 +155,13 @@ At minimum, a serious module should provide:
 Typical lifecycle:
 
 1. load configuration
-2. connect to required infra
-3. start HTTP server / workers
-4. expose health endpoints
-5. register in `platform-core`
-6. register permissions if needed
-7. forward logs to `platform-core`
+2. bootstrap desired runtime config from `platform-core`
+3. connect to required infra
+4. start HTTP server / workers
+5. expose health endpoints
+6. register in `platform-core`
+7. register permissions if needed
+8. forward logs to `platform-core`
 
 ## 6.1 Configuration minimization
 
@@ -180,9 +181,16 @@ Rule of thumb:
 Good examples of module-local settings:
 
 - module `BaseURL`
-- module database connection string
 - NATS URL if the module publishes or consumes events
 - feature flags that only affect the module's own behavior
+
+Prefer not to duplicate operational secrets and shared infra coordinates into
+every module deployment when `platform-core` already owns them. The usual
+production pattern is:
+
+- the module keeps only bootstrap connectivity settings
+- the module requests desired runtime config from `platform-core` over NATS
+- the module reports the applied runtime config back to `platform-core`
 
 Operational recommendation:
 
@@ -191,12 +199,20 @@ Operational recommendation:
 - `platform-core` may distribute the connection string, but it should not run the module's migrations for it
 - when using a shared MySQL user for module bootstrap, grant `CREATE` plus schema privileges for the module database namespace, for example `exiledcms_*`
 
+Recommended bootstrap-only settings for remote modules:
+
+- HTTP listen URL
+- module `BaseURL`
+- `PlatformCore:BaseUrl`
+- `Nats:Url`
+
 Good examples of `platform-core` owned data:
 
 - module registration metadata
 - permission catalog entries
 - centralized log routing policy
 - centralized Sentry forwarding policy
+- distributed runtime secrets and connection strings that are operationally owned by the platform
 
 ## 6.2 Logging and Sentry
 
@@ -250,6 +266,9 @@ Register the module in `platform-core`:
   "kind": "service",
   "baseUrl": "http://tickets-service:8080",
   "healthUrl": "http://tickets-service:8080/healthz",
+  "configRequestSubject": "platform.config.request.tickets-service",
+  "configDesiredSubject": "platform.config.desired.tickets-service",
+  "configReportedSubject": "platform.config.reported.tickets-service",
   "registeredAt": "2026-04-19T18:20:00Z",
   "ownedCapabilities": ["support.tickets"],
   "tags": ["dotnet", "tickets"]
@@ -266,13 +285,16 @@ Register the module in `platform-core`:
   "kind": "service",
   "baseUrl": "http://tickets-service:8080",
   "healthUrl": "http://tickets-service:8080/healthz",
+  "configRequestSubject": "platform.config.request.tickets-service",
+  "configDesiredSubject": "platform.config.desired.tickets-service",
+  "configReportedSubject": "platform.config.reported.tickets-service",
   "registeredAt": "2026-04-19T18:20:00Z",
   "ownedCapabilities": ["support.tickets"],
   "tags": ["dotnet", "tickets", "observability"],
   "topology": {
     "deploymentMode": "remote-service",
     "dataSources": [
-      "mysql:exiledcms_tickets",
+      "platform-core distributed database config",
       "nats",
       "platform-core registry api"
     ],

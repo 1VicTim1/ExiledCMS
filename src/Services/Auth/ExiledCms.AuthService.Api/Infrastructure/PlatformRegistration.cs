@@ -27,9 +27,14 @@ internal sealed record PlatformModulePayload(
     string HealthUrl,
     string? OpenApiUrl,
     string? SwaggerUiUrl,
+    string? ConfigRequestSubject,
+    string? ConfigDesiredSubject,
+    string? ConfigReportedSubject,
     DateTime RegisteredAt,
     IReadOnlyCollection<string> OwnedCapabilities,
-    IReadOnlyCollection<string> Tags);
+    IReadOnlyCollection<string> Tags,
+    object? Topology,
+    IReadOnlyCollection<object>? Documentation);
 
 internal sealed record PlatformPermissionPayload(
     string Key,
@@ -108,9 +113,32 @@ public sealed class PlatformCoreRegistrationService : BackgroundService
             HealthUrl: auth.BaseUrl.TrimEnd('/') + "/healthz",
             OpenApiUrl: auth.GetOpenApiUrl(),
             SwaggerUiUrl: auth.GetSwaggerUiUrl(),
+            ConfigRequestSubject: PlatformConfigSubjects.Request(auth.Name),
+            ConfigDesiredSubject: PlatformConfigSubjects.Desired(auth.Name),
+            ConfigReportedSubject: PlatformConfigSubjects.Reported(auth.Name),
             RegisteredAt: DateTime.UtcNow,
             OwnedCapabilities: ["auth.identity", "auth.rbac"],
-            Tags: ["dotnet", "aspnet-core", "auth", "identity", "rbac"]);
+            Tags: ["dotnet", "aspnet-core", "auth", "identity", "rbac", "observability"],
+            Topology: new
+            {
+                deploymentMode = "remote-service",
+                dataSources = new[]
+                {
+                    "platform-core distributed database config",
+                    "platform-core distributed jwt config",
+                    "nats",
+                    "platform-core registry api",
+                },
+                dependencies = new[] { "platform-core", "mysql", "nats" },
+            },
+            Documentation: new object[]
+            {
+                new { key = "development", title = "Module Platform Guide", href = "contracts/modules/README.md", description = "High-level explanation of how modules work in ExiledCMS." },
+                new { key = "development", title = "Module Development Guide", href = "contracts/modules/development.md", description = "Implementation details for registering a module and forwarding logs." },
+                new { key = "api", title = "Auth Service README", href = "src/Services/Auth/ExiledCms.AuthService.Api/README.md", description = "Service-local API and runtime guide." },
+                new { key = "observability", title = "Module Observability Guide", href = "contracts/modules/observability.md", description = "Centralized logging and observability conventions for modules." },
+                new { key = "sentry", title = "Sentry Topology Guide", href = "contracts/modules/observability.md#recommended-sentry-topology", description = "How centralized core routing and module-local Sentry can coexist." },
+            });
 
         var moduleResponse = await client.PostAsJsonAsync("api/v1/platform/modules", payload, PlatformJson.Options, cancellationToken);
         moduleResponse.EnsureSuccessStatusCode();

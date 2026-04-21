@@ -9,6 +9,8 @@ namespace ExiledCms.TicketsService.Api.Controllers;
 [Produces("application/json")]
 public sealed class TicketsController : ControllerBase
 {
+    internal const string GetTicketByIdRouteName = "tickets.get-by-id";
+
     private readonly ITicketService _ticketService;
 
     public TicketsController(ITicketService ticketService)
@@ -21,7 +23,7 @@ public sealed class TicketsController : ControllerBase
     public async Task<ActionResult<TicketDetailResponse>> CreateAsync([FromBody] CreateTicketRequest request, CancellationToken cancellationToken)
     {
         var response = await _ticketService.CreateAsync(request, cancellationToken);
-        return CreatedAtAction(nameof(GetByIdAsync), new { id = response.Id }, response);
+        return CreatedAtRoute(GetTicketByIdRouteName, new { id = response.Id }, response);
     }
 
     [HttpGet]
@@ -32,7 +34,7 @@ public sealed class TicketsController : ControllerBase
         return Ok(response);
     }
 
-    [HttpGet("{id:guid}")]
+    [HttpGet("{id:guid}", Name = GetTicketByIdRouteName)]
     [ProducesResponseType(typeof(TicketDetailResponse), StatusCodes.Status200OK)]
     public async Task<ActionResult<TicketDetailResponse>> GetByIdAsync([FromRoute] Guid id, CancellationToken cancellationToken)
     {

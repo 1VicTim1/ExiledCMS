@@ -1,12 +1,12 @@
 namespace ExiledCms.AuthService.Api.Domain;
 
-// Minimal-config design: options maps 1:1 to appsettings, no module-config-sync
-// round-trip. Operators fill either env vars or appsettings.json.
 public sealed class AuthServiceOptions
 {
     public string Name { get; set; } = "auth-service";
     public string Version { get; set; } = "1.0.0";
     public string BaseUrl { get; set; } = "http://auth-service:8080";
+    // Local fallback used only when platform-core has not delivered runtime
+    // configuration yet. Production deployments should prefer core-driven config.
     public string MySqlConnectionString { get; set; } = "";
     public string OpenApiJsonPath { get; set; } = "/swagger/v1/swagger.json";
     public string SwaggerUiPath { get; set; } = "/swagger";
@@ -17,8 +17,8 @@ public sealed class AuthServiceOptions
 
 public sealed class JwtOptions
 {
-    // Secret is required: the service refuses to start if this stays empty in
-    // production. A random one-off secret is generated in Development only.
+    // Secret is resolved from platform-core runtime settings first and falls back
+    // to local configuration only when the control plane is unavailable.
     public string Secret { get; set; } = "";
     public string Issuer { get; set; } = "exiledcms-auth";
     public string Audience { get; set; } = "exiledcms";
@@ -30,6 +30,17 @@ public sealed class PlatformCoreOptions
     public string BaseUrl { get; set; } = "http://platform-core:8080";
     public bool AutoRegister { get; set; } = true;
     public int RetryIntervalSeconds { get; set; } = 30;
+}
+
+public sealed class NatsOptions
+{
+    public string Url { get; set; } = "nats://localhost:4222";
+}
+
+public sealed class ModuleConfigSyncOptions
+{
+    public int RequestTimeoutSeconds { get; set; } = 5;
+    public int ReportIntervalSeconds { get; set; } = 15;
 }
 
 public sealed class User

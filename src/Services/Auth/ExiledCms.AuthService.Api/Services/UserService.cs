@@ -1,7 +1,6 @@
 using System.Security.Cryptography;
 using ExiledCms.AuthService.Api.Domain;
 using ExiledCms.AuthService.Api.Infrastructure;
-using Microsoft.Extensions.Options;
 
 namespace ExiledCms.AuthService.Api.Services;
 
@@ -36,14 +35,14 @@ public sealed class UserService : IUserService
     private readonly IUserRepository _users;
     private readonly PasswordHasher _hasher;
     private readonly TotpService _totp;
-    private readonly JwtOptions _jwtOptions;
+    private readonly JwtRuntimeOptionsAccessor _jwtOptionsAccessor;
 
-    public UserService(IUserRepository users, PasswordHasher hasher, TotpService totp, IOptions<JwtOptions> jwtOptions)
+    public UserService(IUserRepository users, PasswordHasher hasher, TotpService totp, JwtRuntimeOptionsAccessor jwtOptionsAccessor)
     {
         _users = users;
         _hasher = hasher;
         _totp = totp;
-        _jwtOptions = jwtOptions.Value;
+        _jwtOptionsAccessor = jwtOptionsAccessor;
     }
 
     public async Task<UserProfile> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken)
@@ -198,7 +197,8 @@ public sealed class UserService : IUserService
         var secret = _totp.GenerateSecret();
         await _users.UpdateTotpAsync(user.Id, secret, false, DateTime.UtcNow, cancellationToken);
 
-        var issuer = string.IsNullOrWhiteSpace(_jwtOptions.Issuer) ? "ExiledCMS" : _jwtOptions.Issuer;
+        var jwtOptions = _jwtOptionsAccessor.GetCurrent();
+        var issuer = string.IsNullOrWhiteSpace(jwtOptions.Issuer) ? "ExiledCMS" : jwtOptions.Issuer;
         return new TotpSetupResponse
         {
             Secret = secret,

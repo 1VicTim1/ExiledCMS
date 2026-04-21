@@ -2,6 +2,8 @@ import "server-only";
 
 import { NextRequest, NextResponse } from "next/server";
 
+import { shouldUseSecureCookies } from "@/lib/cookie-policy";
+
 export const authCookieNames = {
   accessToken: "exiledcms_access_token",
   userId: "exiledcms_user_id",
@@ -43,6 +45,10 @@ export type AuthSessionSnapshot = {
   isAuthenticated: boolean;
 };
 
+type CookieSecurityContext = {
+  request?: NextRequest;
+};
+
 export function readSessionFromRequest(request: NextRequest): AuthSessionSnapshot {
   return readSessionFromCookieSource((name) => request.cookies.get(name)?.value);
 }
@@ -65,28 +71,30 @@ export function readSessionFromCookieSource(getCookieValue: (name: string) => st
   };
 }
 
-export function applyAuthSession(response: NextResponse, login: AuthLoginResponse) {
+export function applyAuthSession(response: NextResponse, login: AuthLoginResponse, context?: CookieSecurityContext) {
   const expires = new Date(login.expiresAtUtc);
   const user = login.user;
+  const secure = resolveCookieSecurity(context?.request);
 
   response.cookies.set(authCookieNames.accessToken, login.accessToken, {
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    secure,
     path: "/",
     expires,
   });
 
-  applyProfileCookies(response, user, expires);
+  applyProfileCookies(response, user, expires, context);
   return response;
 }
 
-export function applyProfileCookies(response: NextResponse, user: AuthUserProfile, expires?: Date) {
+export function applyProfileCookies(response: NextResponse, user: AuthUserProfile, expires?: Date, context?: CookieSecurityContext) {
   const primaryRole = user.roles.find((role) => role.toLowerCase() === "admin") || user.roles[0] || "user";
+  const secure = resolveCookieSecurity(context?.request);
   const cookieOptions = {
     httpOnly: true,
     sameSite: "lax" as const,
-    secure: process.env.NODE_ENV === "production",
+    secure,
     path: "/",
     expires,
   };
@@ -100,12 +108,13 @@ export function applyProfileCookies(response: NextResponse, user: AuthUserProfil
   response.cookies.set(authCookieNames.totpEnabled, String(user.totpEnabled), cookieOptions);
 }
 
-export function clearAuthSession(response: NextResponse) {
+export function clearAuthSession(response: NextResponse, context?: CookieSecurityContext) {
+  const secure = resolveCookieSecurity(context?.request);
   for (const cookieName of Object.values(authCookieNames)) {
     response.cookies.set(cookieName, "", {
       httpOnly: true,
       sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
+      secure,
       path: "/",
       expires: new Date(0),
     });
@@ -123,4 +132,12 @@ export function splitPermissions(rawValue?: string) {
 
 export function parseBooleanCookie(value?: string) {
   return value?.trim().toLowerCase() === "true";
+}
+
+function resolveCookieSecurity(request?: NextRequest) {
+  return shouldUseSecureCookies({
+    protocol: request?.nextUrl?.protocol,
+    forwardedProto: request?.headers.get("x-forwarded-proto"),
+    configuredMode: process.env.EXILEDCMS_COOKIE_SECURE,
+  });
 }

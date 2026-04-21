@@ -9,18 +9,22 @@ namespace ExiledCms.AuthService.Api.Infrastructure;
 
 public sealed class MySqlConnectionFactory
 {
+    private readonly ModuleRuntimeConfigurationStore _configurationStore;
     private readonly IOptions<AuthServiceOptions> _options;
     private readonly SemaphoreSlim _databaseInitializationLock = new(1, 1);
     private volatile bool _databaseInitialized;
 
-    public MySqlConnectionFactory(IOptions<AuthServiceOptions> options)
+    public MySqlConnectionFactory(ModuleRuntimeConfigurationStore configurationStore, IOptions<AuthServiceOptions> options)
     {
+        _configurationStore = configurationStore;
         _options = options;
     }
 
     public async Task<MySqlConnection> OpenConnectionAsync(CancellationToken cancellationToken)
     {
-        var connectionString = _options.Value.MySqlConnectionString;
+        var connectionString = ResolveConnectionString(
+            _configurationStore.GetDatabaseConnectionStringOrNull(),
+            _options.Value.MySqlConnectionString);
         if (string.IsNullOrWhiteSpace(connectionString))
         {
             throw new InvalidOperationException("Auth.MySqlConnectionString is empty — set Auth__MySqlConnectionString or configure appsettings.");
@@ -55,6 +59,16 @@ public sealed class MySqlConnectionFactory
         {
             _databaseInitializationLock.Release();
         }
+    }
+
+    internal static string ResolveConnectionString(string? syncedConnectionString, string? localFallbackConnectionString)
+    {
+        if (!string.IsNullOrWhiteSpace(syncedConnectionString))
+        {
+            return syncedConnectionString.Trim();
+        }
+
+        return localFallbackConnectionString?.Trim() ?? string.Empty;
     }
 }
 

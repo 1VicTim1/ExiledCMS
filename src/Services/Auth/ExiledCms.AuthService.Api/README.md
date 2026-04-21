@@ -34,12 +34,14 @@ frontend account page.
 
 On startup the service:
 
-1. loads config from `appsettings` / env
-2. creates its own MySQL database if it does not exist yet
-3. applies SQL scripts from `Migrations/Scripts`
-4. exposes Swagger
-5. registers itself and its permission catalog in `platform-core`
-6. forwards logs to `platform-core`
+1. loads only bootstrap config from `appsettings` / env
+2. requests authoritative runtime config from `platform-core` over NATS
+3. creates its own MySQL database if it does not exist yet
+4. applies SQL scripts from `Migrations/Scripts`
+5. exposes Swagger
+6. registers itself and its permission catalog in `platform-core`
+7. reports the effective runtime config back to `platform-core`
+8. forwards logs to `platform-core`
 
 ## Important config
 
@@ -48,13 +50,11 @@ On startup the service:
 - `Name`
 - `Version`
 - `BaseUrl`
-- `MySqlConnectionString`
 - `OpenApiJsonPath`
 - `SwaggerUiPath`
 
 `Jwt` section:
 
-- `Secret`
 - `Issuer`
 - `Audience`
 - `AccessTokenLifetimeMinutes`
@@ -65,12 +65,41 @@ On startup the service:
 - `AutoRegister`
 - `RetryIntervalSeconds`
 
+`Nats` section:
+
+- `Url`
+
+`ModuleConfigSync` section:
+
+- `RequestTimeoutSeconds`
+- `ReportIntervalSeconds`
+
+## Runtime config from core
+
+`platform-core` is the authoritative source for:
+
+- `databaseConnectionString`
+- `settings.auth.jwt.secret`
+- `settings.auth.jwt.issuer`
+- `settings.auth.jwt.audience`
+- `settings.auth.jwt.accessTokenLifetimeMinutes`
+
+Local `Auth__MySqlConnectionString` and `Jwt__Secret` are now fallback-only
+bootstrap values. In a normal Docker or Kubernetes deployment the service can
+start with only:
+
+- `ASPNETCORE_URLS`
+- `Auth__BaseUrl`
+- `PlatformCore__BaseUrl`
+- `Nats__Url`
+
 ## Tests
 
 Auth unit tests cover:
 
 - password hashing
 - JWT issue/validate
+- runtime config resolution for DB and JWT settings
 - TOTP validation
 - registration flow
 - password change
