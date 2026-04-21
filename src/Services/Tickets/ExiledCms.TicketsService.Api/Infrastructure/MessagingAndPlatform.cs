@@ -144,7 +144,7 @@ public sealed class OutboxDispatcherService : BackgroundService
                         """,
                     parameters: new
                     {
-                        Id = pendingEvent.Id,
+                        Id = pendingEvent.Id.ToString("D"),
                         PublishedAtUtc = DateTime.UtcNow,
                     },
                     transaction: transaction,
@@ -161,7 +161,7 @@ public sealed class OutboxDispatcherService : BackgroundService
                         """,
                     parameters: new
                     {
-                        Id = pendingEvent.Id,
+                        Id = pendingEvent.Id.ToString("D"),
                         LastError = exception.Message.Length > 4000 ? exception.Message[..4000] : exception.Message,
                     },
                     transaction: transaction,

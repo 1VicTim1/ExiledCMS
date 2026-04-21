@@ -154,6 +154,37 @@ public sealed class AuthSecurityAndUserServiceTests
         }
     }
 
+    [Fact]
+    public void UserRow_ToDomain_PreservesGuidIdentifier()
+    {
+        var id = Guid.NewGuid();
+        var row = new UserRepository.UserRow
+        {
+            Id = id,
+            Email = "player@example.com",
+            EmailNormalized = "player@example.com",
+            EmailVerified = true,
+            EmailVerificationToken = "verify-token",
+            DisplayName = "PlayerOne",
+            PasswordHash = "hash",
+            PasswordSalt = "salt",
+            PasswordAlgorithm = "pbkdf2",
+            PasswordIterations = 100000,
+            TotpSecret = "totp-secret",
+            TotpEnabled = true,
+            Status = "active",
+            CreatedAtUtc = DateTime.UtcNow,
+            UpdatedAtUtc = DateTime.UtcNow,
+            LastLoginAtUtc = DateTime.UtcNow,
+        };
+
+        var domain = row.ToDomain();
+
+        Assert.Equal(id, domain.Id);
+        Assert.Equal(row.Email, domain.Email);
+        Assert.True(domain.TotpEnabled);
+    }
+
     private static UserService CreateUserService(InMemoryUserRepository repository)
     {
         return new UserService(

@@ -64,4 +64,40 @@ public sealed class ModuleRuntimeConfigurationTests
             root.Delete(recursive: true);
         }
     }
+
+    [Fact]
+    public void MySqlConnectionFactory_ResolveConnectionString_PrefersPlatformCoreConfig()
+    {
+        var resolved = MySqlConnectionFactory.ResolveConnectionString(
+            " Server=platform;Database=exiledcms_tickets; ",
+            "Server=local;Database=exiledcms_tickets;");
+
+        Assert.Equal("Server=platform;Database=exiledcms_tickets;", resolved);
+    }
+
+    [Fact]
+    public void MySqlConnectionFactory_ResolveConnectionString_FallsBackToLocalSetting()
+    {
+        var resolved = MySqlConnectionFactory.ResolveConnectionString(
+            syncedConnectionString: null,
+            localFallbackConnectionString: " Server=local;Database=exiledcms_tickets; ");
+
+        Assert.Equal("Server=local;Database=exiledcms_tickets;", resolved);
+    }
+
+    [Fact]
+    public void ModuleRuntimeConfigurationStore_BuildReported_UsesLocalFallbackAsDatabaseConfigured()
+    {
+        var store = new ModuleRuntimeConfigurationStore();
+
+        var reported = store.BuildReported(new ServiceOptions
+        {
+            Name = "tickets-service",
+            BaseUrl = "http://tickets-service:8080",
+            MySqlConnectionString = "Server=local;Database=exiledcms_tickets;",
+        }, "local-fallback");
+
+        Assert.True(reported.DatabaseConfigured);
+        Assert.Equal("local-fallback", reported.ConfigurationSource);
+    }
 }

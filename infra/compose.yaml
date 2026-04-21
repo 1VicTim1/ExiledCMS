@@ -1,28 +1,6 @@
 name: exiledcms-infra
 
 services:
-  mysql:
-    image: mysql:8.4
-    command:
-      - --default-authentication-plugin=caching_sha2_password
-      - --character-set-server=utf8mb4
-      - --collation-server=utf8mb4_0900_ai_ci
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: exiledcms_platform
-      MYSQL_USER: exiledcms
-      MYSQL_PASSWORD: exiledcms
-    ports:
-      - "3306:3306"
-    volumes:
-      - mysql-data:/var/lib/mysql
-      - ./mysql/init:/docker-entrypoint-initdb.d:ro
-    healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -proot"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-
   redis:
     image: redis:7.4
     command: ["redis-server", "--appendonly", "yes"]
@@ -46,7 +24,5 @@ services:
       - nats-data:/data
 
 volumes:
-  mysql-data:
   redis-data:
   nats-data:
-

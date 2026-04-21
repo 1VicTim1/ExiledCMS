@@ -410,9 +410,9 @@ public sealed class UserRepository : IUserRepository
 
     // Row DTO mirrors the MySQL schema so Dapper can bind column types directly
     // (tinyint → bool) without a custom handler.
-    private sealed class UserRow
+    internal sealed class UserRow
     {
-        public string Id { get; set; } = "";
+        public Guid Id { get; set; }
         public string Email { get; set; } = "";
         public string EmailNormalized { get; set; } = "";
         public bool EmailVerified { get; set; }
@@ -431,7 +431,7 @@ public sealed class UserRepository : IUserRepository
 
         public User ToDomain() => new()
         {
-            Id = Guid.Parse(Id),
+            Id = Id,
             Email = Email,
             EmailNormalized = EmailNormalized,
             EmailVerified = EmailVerified,

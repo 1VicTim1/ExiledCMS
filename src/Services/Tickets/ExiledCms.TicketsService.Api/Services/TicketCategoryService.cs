@@ -136,7 +136,7 @@ public sealed class TicketCategoryService : ITicketCategoryService
 
     private static TicketCategoryResponse MapCategory(TicketCategoryRow category) => new()
     {
-        Id = Guid.Parse(category.Id),
+        Id = category.Id,
         Name = category.Name,
         Description = category.Description,
         IsActive = category.IsActive,

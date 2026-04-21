@@ -60,11 +60,17 @@ Environment variables are documented in `.env.example`.
 
 Key values:
 
-- `ConnectionStrings__TicketsDatabase`
+- `Service__MySqlConnectionString`
 - `PlatformCore__BaseUrl`
 - `PlatformCore__AutoRegister`
 - `Nats__Url`
 - `Service__BaseUrl`
+
+`platform-core` remains the authoritative source for module runtime config, but
+`Service__MySqlConnectionString` can be provided as a local fallback so the
+service can still start and run migrations while NATS or platform-core are
+coming up. This is important for docker-compose and distributed bootstrap
+scenarios where startup ordering is not deterministic.
 
 ## API
 
@@ -150,9 +156,10 @@ The service exposes metadata endpoints and also periodically registers itself in
 ## Running locally
 
 1. Start infra from `infra/compose.yaml`
-2. Ensure `platform-core` is available if auto-registration is enabled
-3. Run the service with the variables from `.env.example`
-4. Open `/swagger`
+2. Ensure an external MySQL/MariaDB instance is running and pass `Service__MySqlConnectionString`
+3. Ensure `platform-core` is available if auto-registration is enabled
+4. Run the service with the variables from `.env.example`
+5. Open `/swagger`
 
 ## Docker
 

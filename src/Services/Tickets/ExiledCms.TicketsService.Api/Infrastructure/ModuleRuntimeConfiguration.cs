@@ -77,6 +77,8 @@ public sealed class ModuleRuntimeConfigurationStore
 
     public bool HasDatabaseConnectionString => !string.IsNullOrWhiteSpace(Current.DatabaseConnectionString);
 
+    public string? GetDatabaseConnectionStringOrNull() => Current.DatabaseConnectionString;
+
     /// <summary>
     /// Applies the authoritative desired configuration received from platform-core.
     /// </summary>
@@ -125,7 +127,9 @@ public sealed class ModuleRuntimeConfigurationStore
         {
             ModuleId = string.IsNullOrWhiteSpace(current.ModuleId) ? serviceOptions.Name : current.ModuleId,
             ReportedAt = DateTime.UtcNow,
-            DatabaseConfigured = !string.IsNullOrWhiteSpace(current.DatabaseConnectionString),
+            DatabaseConfigured =
+                !string.IsNullOrWhiteSpace(current.DatabaseConnectionString) ||
+                !string.IsNullOrWhiteSpace(serviceOptions.MySqlConnectionString),
             OpenApiUrl = string.IsNullOrWhiteSpace(current.OpenApiUrl)
                 ? serviceOptions.GetOpenApiUrl()
                 : current.OpenApiUrl,
@@ -215,7 +219,14 @@ public sealed class PlatformCoreModuleConfigSyncService : BackgroundService
     {
         if (!_configurationStore.HasDatabaseConnectionString)
         {
-            await BootstrapAsync(stoppingToken);
+            try
+            {
+                await BootstrapAsync(stoppingToken);
+            }
+            catch (Exception exception) when (!stoppingToken.IsCancellationRequested)
+            {
+                _logger.LogWarning(exception, "Initial platform-core runtime configuration bootstrap timed out; tickets-service will keep running and wait for NATS updates");
+            }
         }
 
         var connectionOptions = ConnectionFactory.GetDefaultOptions();

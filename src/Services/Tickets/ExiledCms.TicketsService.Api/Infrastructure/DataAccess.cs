@@ -2,6 +2,7 @@ using System.Data;
 using System.Text;
 using Dapper;
 using ExiledCms.BuildingBlocks.Hosting;
+using Microsoft.Extensions.Options;
 using MySqlConnector;
 
 namespace ExiledCms.TicketsService.Api.Infrastructure;
@@ -9,20 +10,24 @@ namespace ExiledCms.TicketsService.Api.Infrastructure;
 public sealed class MySqlConnectionFactory
 {
     private readonly ModuleRuntimeConfigurationStore _configurationStore;
+    private readonly IOptions<ServiceOptions> _serviceOptions;
     private readonly SemaphoreSlim _databaseInitializationLock = new(1, 1);
     private volatile bool _databaseInitialized;
 
-    public MySqlConnectionFactory(ModuleRuntimeConfigurationStore configurationStore)
+    public MySqlConnectionFactory(ModuleRuntimeConfigurationStore configurationStore, IOptions<ServiceOptions> serviceOptions)
     {
         _configurationStore = configurationStore;
+        _serviceOptions = serviceOptions;
     }
 
     public async Task<MySqlConnection> OpenConnectionAsync(CancellationToken cancellationToken)
     {
-        var connectionString = _configurationStore.GetRequiredDatabaseConnectionString();
+        var connectionString = ResolveConnectionString(
+            _configurationStore.GetDatabaseConnectionStringOrNull(),
+            _serviceOptions.Value.MySqlConnectionString);
         if (string.IsNullOrWhiteSpace(connectionString))
         {
-            throw new InvalidOperationException("The tickets database connection string has not been received from platform-core.");
+            throw new InvalidOperationException("The tickets database connection string has not been received from platform-core and no local fallback was configured.");
         }
 
         await EnsureDatabaseExistsOnceAsync(connectionString, cancellationToken);
@@ -54,6 +59,16 @@ public sealed class MySqlConnectionFactory
         {
             _databaseInitializationLock.Release();
         }
+    }
+
+    internal static string ResolveConnectionString(string? syncedConnectionString, string? localFallbackConnectionString)
+    {
+        if (!string.IsNullOrWhiteSpace(syncedConnectionString))
+        {
+            return syncedConnectionString.Trim();
+        }
+
+        return localFallbackConnectionString?.Trim() ?? string.Empty;
     }
 }
 

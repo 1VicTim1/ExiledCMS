@@ -61,16 +61,16 @@ public static class TicketAuditActions
 
 public sealed class TicketRow
 {
-    public string Id { get; init; } = string.Empty;
-    public string CreatedByUserId { get; init; } = string.Empty;
+    public Guid Id { get; init; }
+    public Guid CreatedByUserId { get; init; }
     public string CreatedByDisplayName { get; init; } = string.Empty;
     public string Subject { get; init; } = string.Empty;
-    public string CategoryId { get; init; } = string.Empty;
+    public Guid CategoryId { get; init; }
     public string CategoryName { get; init; } = string.Empty;
     public string? CategoryDescription { get; init; }
     public string Priority { get; init; } = TicketPriorities.Medium;
     public string Status { get; init; } = TicketStatuses.Open;
-    public string? AssignedStaffUserId { get; init; }
+    public Guid? AssignedStaffUserId { get; init; }
     public string? AssignedStaffDisplayName { get; init; }
     public DateTime CreatedAtUtc { get; init; }
     public DateTime UpdatedAtUtc { get; init; }
@@ -81,9 +81,9 @@ public sealed class TicketRow
 
 public sealed class TicketMessageRow
 {
-    public string Id { get; init; } = string.Empty;
-    public string TicketId { get; init; } = string.Empty;
-    public string AuthorUserId { get; init; } = string.Empty;
+    public Guid Id { get; init; }
+    public Guid TicketId { get; init; }
+    public Guid AuthorUserId { get; init; }
     public string AuthorDisplayName { get; init; } = string.Empty;
     public string AuthorRole { get; init; } = string.Empty;
     public bool IsStaffReply { get; init; }
@@ -93,11 +93,11 @@ public sealed class TicketMessageRow
 
 public sealed class TicketAssignmentRow
 {
-    public string Id { get; init; } = string.Empty;
-    public string TicketId { get; init; } = string.Empty;
-    public string AssignedStaffUserId { get; init; } = string.Empty;
+    public Guid Id { get; init; }
+    public Guid TicketId { get; init; }
+    public Guid AssignedStaffUserId { get; init; }
     public string AssignedStaffDisplayName { get; init; } = string.Empty;
-    public string AssignedByUserId { get; init; } = string.Empty;
+    public Guid AssignedByUserId { get; init; }
     public string AssignedByDisplayName { get; init; } = string.Empty;
     public bool IsActive { get; init; }
     public DateTime AssignedAtUtc { get; init; }
@@ -106,7 +106,7 @@ public sealed class TicketAssignmentRow
 
 public sealed class TicketCategoryRow
 {
-    public string Id { get; init; } = string.Empty;
+    public Guid Id { get; init; }
     public string Name { get; init; } = string.Empty;
     public string? Description { get; init; }
     public bool IsActive { get; init; }
@@ -117,9 +117,9 @@ public sealed class TicketCategoryRow
 
 public sealed class TicketInternalNoteRow
 {
-    public string Id { get; init; } = string.Empty;
-    public string TicketId { get; init; } = string.Empty;
-    public string AuthorUserId { get; init; } = string.Empty;
+    public Guid Id { get; init; }
+    public Guid TicketId { get; init; }
+    public Guid AuthorUserId { get; init; }
     public string AuthorDisplayName { get; init; } = string.Empty;
     public string Body { get; init; } = string.Empty;
     public DateTime CreatedAtUtc { get; init; }
@@ -127,9 +127,9 @@ public sealed class TicketInternalNoteRow
 
 public sealed class TicketAuditLogRow
 {
-    public string Id { get; init; } = string.Empty;
-    public string TicketId { get; init; } = string.Empty;
-    public string ActorUserId { get; init; } = string.Empty;
+    public Guid Id { get; init; }
+    public Guid TicketId { get; init; }
+    public Guid ActorUserId { get; init; }
     public string ActorDisplayName { get; init; } = string.Empty;
     public string ActorRole { get; init; } = string.Empty;
     public string ActionType { get; init; } = string.Empty;
@@ -140,7 +140,7 @@ public sealed class TicketAuditLogRow
 
 public sealed class OutboxEventRow
 {
-    public string Id { get; init; } = string.Empty;
+    public Guid Id { get; init; }
     public string Subject { get; init; } = string.Empty;
     public string EnvelopeJson { get; init; } = "{}";
 }

@@ -8,6 +8,9 @@ public sealed class ServiceOptions
 
     public string BaseUrl { get; set; } = "http://tickets-service:8080";
 
+    // Local fallback used during startup if platform-core config sync is not ready yet.
+    public string MySqlConnectionString { get; set; } = string.Empty;
+
     public string OpenApiJsonPath { get; set; } = "/swagger/v1/swagger.json";
 
     public string SwaggerUiPath { get; set; } = "/swagger";

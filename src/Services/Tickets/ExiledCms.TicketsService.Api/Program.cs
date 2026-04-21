@@ -76,7 +76,15 @@ app.UseSwaggerUI();
 await using (var scope = app.Services.CreateAsyncScope())
 {
     var configSync = scope.ServiceProvider.GetRequiredService<PlatformCoreModuleConfigSyncService>();
-    await configSync.BootstrapAsync(CancellationToken.None);
+    var startupLogger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("Startup");
+    try
+    {
+        await configSync.BootstrapAsync(CancellationToken.None);
+    }
+    catch (Exception exception)
+    {
+        startupLogger.LogWarning(exception, "Initial platform-core config bootstrap failed; continuing with local fallback configuration if available");
+    }
 
     var migrationRunner = scope.ServiceProvider.GetRequiredService<SqlMigrationRunner>();
     await migrationRunner.ApplyAsync(CancellationToken.None);
