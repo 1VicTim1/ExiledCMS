@@ -1,0 +1,31 @@
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/BuildingBlocks/">
+    <Project Path="src/BuildingBlocks/ExiledCms.BuildingBlocks.Contracts/ExiledCms.BuildingBlocks.Contracts.csproj" />
+    <Project Path="src/BuildingBlocks/ExiledCms.BuildingBlocks.Hosting/ExiledCms.BuildingBlocks.Hosting.csproj" />
+  </Folder>
+  <Folder Name="/tests/" />
+  <Folder Name="/tests/BuildingBlocks/">
+    <Project Path="tests/ExiledCms.BuildingBlocks.Hosting.Tests/ExiledCms.BuildingBlocks.Hosting.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tests/Services/">
+    <Project Path="tests/ExiledCms.AuthService.Api.Tests/ExiledCms.AuthService.Api.Tests.csproj" />
+    <Project Path="tests/ExiledCms.TicketsService.Api.Tests/ExiledCms.TicketsService.Api.Tests.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/" />
+  <Folder Name="/src/Services/Auth/">
+    <Project Path="src/Services/Auth/ExiledCms.AuthService.Api/ExiledCms.AuthService.Api.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/Plugins/">
+    <Project Path="src/Services/Plugins/ExiledCms.PluginsService.Api/ExiledCms.PluginsService.Api.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/Themes/">
+    <Project Path="src/Services/Themes/ExiledCms.ThemesService.Api/ExiledCms.ThemesService.Api.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/Tickets/">
+    <Project Path="src/Services/Tickets/ExiledCms.TicketsService.Api/ExiledCms.TicketsService.Api.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/UsersRoles/">
+    <Project Path="src/Services/UsersRoles/ExiledCms.UsersRolesService.Api/ExiledCms.UsersRolesService.Api.csproj" />
+  </Folder>
+</Solution>

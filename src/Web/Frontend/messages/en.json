@@ -1,0 +1,235 @@
+{
+  "Home": {
+    "title": "Welcome to {name}",
+    "description": "The ultimate Minecraft experience. Join thousands of players in our custom-built worlds with unique mechanics, economy, and community events.",
+    "playNow": "Play Now",
+    "login": "Login",
+    "store": "Store",
+    "news": "News",
+    "support": "Support",
+    "home": "Home",
+    "browseStore": "Browse Store",
+    "joinServer": "Join play.exiledproject.net",
+    "seasonLive": "🎉 Season 5 is now live!",
+    "stats": {
+      "players": "Players Online",
+      "uptime": "Server Uptime",
+      "modes": "Game Modes",
+      "support": "Active Support"
+    },
+    "footer": "© {year} ExiledProject. Not affiliated with Mojang AB."
+  },
+  "Admin": {
+    "dashboard": "Dashboard",
+    "pages": "Pages",
+    "themes": "Themes",
+    "plugins": "Plugins",
+    "settings": "Settings",
+    "logout": "Logout",
+    "overview": "Overview",
+    "revenue": "Revenue",
+    "activePlayers": "Active Players",
+    "sales": "Sales",
+    "recentActivity": "Recent Activity",
+    "viewAll": "View All"
+  },
+  "Tickets": {
+    "badge": "Support center",
+    "title": "Resolve purchases, appeals and account issues from one support hub",
+    "description": "The tickets page keeps all conversations, response times and ticket status changes in one place so players and staff can work without losing context.",
+    "primaryAction": "Create ticket",
+    "secondaryAction": "Refresh tickets",
+    "stats": {
+      "open": {
+        "label": "Open tickets right now",
+        "value": "14"
+      },
+      "reply": {
+        "label": "Average first reply",
+        "value": "< 8 min"
+      },
+      "resolved": {
+        "label": "Resolved today",
+        "value": "27"
+      }
+    },
+    "highlights": {
+      "fastReplies": {
+        "title": "Fast first response",
+        "description": "Purchase and account categories are automatically routed to the right support queue."
+      },
+      "appeals": {
+        "title": "Appeals and reports",
+        "description": "Ban appeals, moderation reports and security incidents can be reviewed in one workflow."
+      },
+      "tracking": {
+        "title": "Transparent status tracking",
+        "description": "Players can see who owns the ticket, when it was updated and what still needs a reply."
+      }
+    },
+    "statuses": {
+      "open": "Open",
+      "inProgress": "In progress",
+      "waitingPlayer": "Waiting for player",
+      "resolved": "Resolved",
+      "closed": "Closed"
+    },
+    "priorities": {
+      "high": "High priority",
+      "medium": "Normal priority",
+      "low": "Low priority",
+      "urgent": "Urgent priority"
+    },
+    "queue": {
+      "title": "Active tickets queue",
+      "description": "Operators can quickly switch between payment, appeals and account recovery requests.",
+      "openTicket": "Open ticket",
+      "loading": "Loading live tickets from tickets-service...",
+      "emptyTitle": "No tickets match the current filter",
+      "emptyDescription": "Create the first ticket or switch the queue filter to see more results.",
+      "updated": "Updated {value}",
+      "assigned": "Assigned to {value}",
+      "messageCount": "Messages: {count}",
+      "filters": {
+        "all": "All",
+        "open": "Open",
+        "waiting": "Waiting",
+        "resolved": "Resolved"
+      },
+      "items": {
+        "payment": {
+          "title": "Missing donation after checkout",
+          "meta": "Payment issue • Updated 5 minutes ago • Assigned to Billing Team",
+          "preview": "Player did not receive the premium bundle after a successful payment. Payment ID and checkout screenshot are attached."
+        },
+        "ban": {
+          "title": "Ban appeal for survival realm",
+          "meta": "Appeal • Updated 23 minutes ago • Waiting for additional proof",
+          "preview": "The player submitted an appeal and provided video fragments. The moderator requested the full session recording before review."
+        },
+        "account": {
+          "title": "Account recovery and email change",
+          "meta": "Account access • Updated 2 hours ago • Security review completed",
+          "preview": "Ownership was confirmed through the billing history. The account email was updated and the player received recovery steps."
+        }
+      }
+    },
+    "create": {
+      "title": "Create a new ticket",
+      "description": "One form for support, donations, moderation appeals and account recovery."
+    },
+    "form": {
+      "subject": "Subject",
+      "subjectPlaceholder": "Describe the issue in one sentence",
+      "category": "Category",
+      "priority": "Priority",
+      "nickname": "Nickname or account",
+      "nicknamePlaceholder": "Your in-game nickname or account email",
+      "description": "Description",
+      "descriptionPlaceholder": "Add all useful details: order number, server, date, screenshots or what already happened before you contacted support.",
+      "attach": "Attach files",
+      "saveDraft": "Save draft",
+      "reset": "Reset form",
+      "success": "Ticket created successfully and loaded from the live queue.",
+      "submitting": "Sending...",
+      "submit": "Send ticket",
+      "categoriesLoading": "Loading categories...",
+      "noCategories": "No active categories",
+      "categories": {
+        "payment": "Payment and store",
+        "ban": "Ban appeal",
+        "account": "Account recovery",
+        "report": "Player report"
+      },
+      "priorities": {
+        "low": "Low",
+        "normal": "Normal",
+        "high": "High",
+        "urgent": "Urgent"
+      }
+    },
+    "detail": {
+      "title": "Ticket details",
+      "description": "Selected ticket summary with current owner, priority and server context.",
+      "loading": "Loading selected ticket...",
+      "emptyTitle": "Select a ticket from the queue",
+      "emptyDescription": "When you choose a ticket, the full conversation and metadata will appear here.",
+      "subjectLabel": "Subject",
+      "categoryLabel": "Category",
+      "priorityLabel": "Priority",
+      "assigneeLabel": "Assigned to",
+      "unassigned": "Unassigned",
+      "authorLabel": "Created by",
+      "lastUpdateLabel": "Last update"
+    },
+    "conversation": {
+      "title": "Conversation",
+      "description": "The dialog history is kept inside the ticket so both the player and staff see the same timeline.",
+      "staffName": "Mila",
+      "staffRole": "Support operator",
+      "playerName": "NoxPlayer",
+      "playerRole": "Player",
+      "messages": {
+        "staffReply": "Hi! I checked your payment and can see the order in the billing system. I am syncing the reward delivery manually and will confirm once the package is on your account.",
+        "playerReply": "Thanks. The order number is #48391 and I still do not see the rank on the server after reconnecting.",
+        "staffFollowUp": "The bundle has been re-issued and the transaction was marked as delivered. Please reconnect once more and let me know if anything is still missing."
+      },
+      "times": {
+        "staffReply": "19:31",
+        "playerReply": "19:37",
+        "staffFollowUp": "19:42"
+      }
+    },
+    "composer": {
+      "label": "Reply inside the ticket",
+      "placeholder": "Write an update, ask for extra proof or confirm that the issue has been resolved.",
+      "attach": "Add attachment",
+      "send": "Send reply",
+      "sending": "Sending...",
+      "success": "Reply sent successfully."
+    },
+    "sla": {
+      "title": "Service targets",
+      "description": "Typical handling windows for the most common ticket categories.",
+      "items": {
+        "reply": {
+          "label": "First reply target",
+          "value": "5-10 minutes"
+        },
+        "review": {
+          "label": "Appeal review window",
+          "value": "Up to 24 hours"
+        },
+        "escalation": {
+          "label": "Security escalation",
+          "value": "Immediate priority"
+        }
+      }
+    },
+    "knowledge": {
+      "title": "Before opening a ticket",
+      "description": "A few quick checks reduce unnecessary waiting and help support resolve the issue faster.",
+      "items": {
+        "payments": {
+          "title": "Store and donation issues",
+          "description": "Prepare the payment ID, the checkout email and a screenshot of the successful payment page."
+        },
+        "security": {
+          "title": "Account access or recovery",
+          "description": "Have your previous nickname, creation date and any available proof of account ownership ready."
+        },
+        "rules": {
+          "title": "Appeals and reports",
+          "description": "Attach video fragments, timestamps and the moderator decision so staff can verify the full context quickly."
+        }
+      }
+    },
+    "errors": {
+      "categories": "Could not load ticket categories from tickets-service.",
+      "tickets": "Could not load the ticket queue from tickets-service.",
+      "detail": "Could not load the selected ticket.",
+      "create": "Could not create the ticket.",
+      "reply": "Could not send the reply."
+    }
+  }
+}
