@@ -170,8 +170,12 @@ func TestModuleConfigEndpointReturnsDesiredAndReportedSnapshots(t *testing.T) {
 
 	if err := configs.SetDesired(moduleconfig.DesiredConfig{
 		ModuleID:                 "tickets-service",
-		DatabaseConnectionString: "Server=mysql;Database=exiledcms_tickets;",
+		DatabaseConnectionString: "Server=mysql;Database=exiledcms_tickets;User Id=tickets;Password=super-secret;",
 		OpenAPIURL:               "http://tickets-service:8080/swagger/v1/swagger.json",
+		Settings: map[string]string{
+			"auth.jwt.secret": "do-not-leak",
+			"feature_flag":    "enabled",
+		},
 	}); err != nil {
 		t.Fatalf("expected desired config to be stored, got %v", err)
 	}
@@ -198,7 +202,15 @@ func TestModuleConfigEndpointReturnsDesiredAndReportedSnapshots(t *testing.T) {
 		t.Fatalf("expected desired and reported config, got %#v", payload)
 	}
 
-	if payload.Desired.DatabaseConnectionString == "" || !payload.Reported.DatabaseConfigured {
+	if payload.Desired.DatabaseConnectionString != "Server=mysql;Database=exiledcms_tickets;User Id=tickets;Password=[redacted];" {
+		t.Fatalf("expected config payload to redact secrets in database data, got %#v", payload)
+	}
+
+	if payload.Desired.Settings["auth.jwt.secret"] != "[redacted]" || payload.Desired.Settings["feature_flag"] != "enabled" {
+		t.Fatalf("expected settings to redact secrets while preserving safe values, got %#v", payload)
+	}
+
+	if !payload.Reported.DatabaseConfigured {
 		t.Fatalf("expected config payload to expose database data and readiness, got %#v", payload)
 	}
 }

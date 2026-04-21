@@ -424,6 +424,19 @@ Buffered logs can be viewed in `platform-core` through:
 
 - `GET /api/v1/platform/logs`
 
+Desired and reported module config can be inspected through:
+
+- `GET /api/v1/platform/module-config`
+- `GET /api/v1/platform/module-config/{id}`
+
+Important rule:
+
+- these HTTP diagnostics are sanitized by `platform-core`
+- secrets such as passwords, tokens, signing keys, and connection-string
+  passwords are redacted before they leave the core API
+- raw values still stay available inside the in-memory config store and the NATS
+  sync path used for module bootstrap
+
 The in-memory buffer is temporary and is not persistent storage.
 After a core restart, buffered logs are lost.
 
@@ -491,8 +504,8 @@ The shared extension forwards logs to `platform-core` in batches.
 By default it resolves:
 
 - `BaseUrl` from `PlatformCoreLogging:BaseUrl` or `PlatformCore:BaseUrl`
-- `ModuleId` from `PlatformCoreLogging:ModuleId` or `Service:Name`
-- `ServiceName` from `PlatformCoreLogging:ServiceName` or `Service:Name`
+- `ModuleId` from `PlatformCoreLogging:ModuleId`, `Service:Name`, `Module:Name`, or `Auth:Name`
+- `ServiceName` from `PlatformCoreLogging:ServiceName`, `Service:Name`, `Module:Name`, or `Auth:Name`
 
 Optional configuration section:
 
@@ -582,7 +595,31 @@ Before calling a module ready, verify:
 - API and event contracts are documented
 - remote deployment assumptions are documented
 
-## 21. Related documents
+## 21. Minimal service skeleton in this repository
+
+If you need a very small module that still behaves correctly in Docker,
+Kubernetes, or a split-host deployment, follow the pattern now used by:
+
+- `src/Services/Plugins/ExiledCms.PluginsService.Api`
+- `src/Services/Themes/ExiledCms.ThemesService.Api`
+- `src/Services/UsersRoles/ExiledCms.UsersRolesService.Api`
+
+That skeleton intentionally keeps only:
+
+- `Service__BaseUrl`
+- `PlatformCore__BaseUrl`
+- `ASPNETCORE_URLS`
+
+And it still provides:
+
+- Swagger
+- `healthz` and `readyz`
+- module auto-registration in `platform-core`
+- permission catalog registration
+- local metadata endpoints for debugging
+- centralized log forwarding through `ExiledCms.BuildingBlocks.Hosting`
+
+## 22. Related documents
 
 - `contracts/modules/README.md`
 - `contracts/modules/observability.md`

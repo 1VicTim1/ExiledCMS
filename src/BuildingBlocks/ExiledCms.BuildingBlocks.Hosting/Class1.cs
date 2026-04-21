@@ -44,6 +44,9 @@ public static class PlatformCoreLoggingExtensions
                 var configuredModuleId = FirstNonEmpty(
                     configuration["PlatformCoreLogging:ModuleId"],
                     configuration["Service:Name"],
+                    configuration["Module:Name"],
+                    configuration["Auth:Name"],
+                    configuration["MODULE_ID"],
                     configuration["SERVICE_NAME"],
                     environment.ApplicationName,
                     "module");
@@ -51,6 +54,8 @@ public static class PlatformCoreLoggingExtensions
                 var configuredServiceName = FirstNonEmpty(
                     configuration["PlatformCoreLogging:ServiceName"],
                     configuration["Service:Name"],
+                    configuration["Module:Name"],
+                    configuration["Auth:Name"],
                     configuredModuleId);
 
                 options.BaseUrl = NormalizeBaseUrl(configuredBaseUrl);

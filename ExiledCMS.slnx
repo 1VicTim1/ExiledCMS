@@ -19,13 +19,22 @@
   <Folder Name="/src/Services/Plugins/">
     <Project Path="src/Services/Plugins/ExiledCms.PluginsService.Api/ExiledCms.PluginsService.Api.csproj" />
   </Folder>
+  <Folder Name="/tests/ExiledCms.PluginsService.Api.Tests/">
+    <Project Path="tests/ExiledCms.PluginsService.Api.Tests/ExiledCms.PluginsService.Api.Tests.csproj" />
+  </Folder>
   <Folder Name="/src/Services/Themes/">
     <Project Path="src/Services/Themes/ExiledCms.ThemesService.Api/ExiledCms.ThemesService.Api.csproj" />
+  </Folder>
+  <Folder Name="/tests/ExiledCms.ThemesService.Api.Tests/">
+    <Project Path="tests/ExiledCms.ThemesService.Api.Tests/ExiledCms.ThemesService.Api.Tests.csproj" />
   </Folder>
   <Folder Name="/src/Services/Tickets/">
     <Project Path="src/Services/Tickets/ExiledCms.TicketsService.Api/ExiledCms.TicketsService.Api.csproj" />
   </Folder>
   <Folder Name="/src/Services/UsersRoles/">
     <Project Path="src/Services/UsersRoles/ExiledCms.UsersRolesService.Api/ExiledCms.UsersRolesService.Api.csproj" />
+  </Folder>
+  <Folder Name="/tests/ExiledCms.UsersRolesService.Api.Tests/">
+    <Project Path="tests/ExiledCms.UsersRolesService.Api.Tests/ExiledCms.UsersRolesService.Api.Tests.csproj" />
   </Folder>
 </Solution>

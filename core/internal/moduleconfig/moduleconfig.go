@@ -3,6 +3,7 @@ package moduleconfig
 import (
 	"encoding/json"
 	"errors"
+	"net/url"
 	"sort"
 	"strings"
 	"sync"
@@ -230,6 +231,58 @@ func (s *Store) Snapshot() Snapshot {
 	}
 }
 
+// SanitizedSnapshot returns a copy of the combined desired/reported view with
+// secrets redacted for HTTP diagnostics. The in-memory store keeps raw values;
+// only caller-facing responses should use this projection.
+func (s *Store) SanitizedSnapshot() Snapshot {
+	return SanitizeSnapshot(s.Snapshot())
+}
+
+// SanitizedView returns the desired/reported configuration for one module with
+// sensitive values redacted for caller-facing diagnostics.
+func (s *Store) SanitizedView(moduleID string) (ModuleConfigView, bool) {
+	view := ModuleConfigView{ModuleID: strings.TrimSpace(moduleID)}
+	if desired, ok := s.DesiredFor(moduleID); ok {
+		copy := desired
+		view.Desired = &copy
+	}
+	if reported, ok := s.ReportedFor(moduleID); ok {
+		copy := reported
+		view.Reported = &copy
+	}
+	if view.Desired == nil && view.Reported == nil {
+		return ModuleConfigView{}, false
+	}
+	return SanitizeView(view), true
+}
+
+// SanitizeSnapshot redacts secrets from a snapshot copy so it is safe to
+// expose through operator-facing HTTP endpoints.
+func SanitizeSnapshot(snapshot Snapshot) Snapshot {
+	sanitized := Snapshot{
+		GeneratedAt: snapshot.GeneratedAt,
+		Items:       make([]ModuleConfigView, 0, len(snapshot.Items)),
+	}
+	for _, item := range snapshot.Items {
+		sanitized.Items = append(sanitized.Items, SanitizeView(item))
+	}
+	return sanitized
+}
+
+// SanitizeView redacts secrets from one desired/reported module config view.
+func SanitizeView(view ModuleConfigView) ModuleConfigView {
+	sanitized := ModuleConfigView{ModuleID: strings.TrimSpace(view.ModuleID)}
+	if view.Desired != nil {
+		copy := sanitizeDesired(*view.Desired)
+		sanitized.Desired = &copy
+	}
+	if view.Reported != nil {
+		copy := sanitizeReported(*view.Reported)
+		sanitized.Reported = &copy
+	}
+	return sanitized
+}
+
 func normalizeDesired(config DesiredConfig) DesiredConfig {
 	config.ModuleID = strings.TrimSpace(config.ModuleID)
 	config.Revision = strings.TrimSpace(config.Revision)
@@ -273,4 +326,131 @@ func normalizeSettings(settings map[string]string) map[string]string {
 		return nil
 	}
 	return normalized
+}
+
+func sanitizeDesired(config DesiredConfig) DesiredConfig {
+	config.DatabaseConnectionString = sanitizeConnectionString(config.DatabaseConnectionString)
+	config.Settings = sanitizeSettings(config.Settings)
+	return config
+}
+
+func sanitizeReported(config ReportedConfig) ReportedConfig {
+	config.Settings = sanitizeSettings(config.Settings)
+	return config
+}
+
+func sanitizeSettings(settings map[string]string) map[string]string {
+	if len(settings) == 0 {
+		return nil
+	}
+
+	sanitized := make(map[string]string, len(settings))
+	for key, value := range settings {
+		trimmedKey := strings.TrimSpace(key)
+		trimmedValue := strings.TrimSpace(value)
+		if trimmedKey == "" || trimmedValue == "" {
+			continue
+		}
+
+		if isConnectionStringKey(trimmedKey) {
+			sanitized[trimmedKey] = sanitizeConnectionString(trimmedValue)
+			continue
+		}
+
+		if isSensitiveSettingKey(trimmedKey) {
+			sanitized[trimmedKey] = "[redacted]"
+			continue
+		}
+
+		sanitized[trimmedKey] = trimmedValue
+	}
+
+	if len(sanitized) == 0 {
+		return nil
+	}
+
+	return sanitized
+}
+
+func sanitizeConnectionString(value string) string {
+	trimmed := strings.TrimSpace(value)
+	if trimmed == "" {
+		return ""
+	}
+
+	if uri, err := url.Parse(trimmed); err == nil && uri.User != nil {
+		username := uri.User.Username()
+		if username != "" {
+			uri.User = url.UserPassword(username, "[redacted]")
+		}
+		return uri.String()
+	}
+
+	parts := strings.Split(trimmed, ";")
+	changed := false
+	for index, part := range parts {
+		token := strings.TrimSpace(part)
+		if token == "" {
+			continue
+		}
+
+		separator := strings.Index(token, "=")
+		if separator <= 0 {
+			continue
+		}
+
+		key := strings.TrimSpace(token[:separator])
+		if !isConnectionStringPasswordKey(key) {
+			continue
+		}
+
+		parts[index] = key + "=[redacted]"
+		changed = true
+	}
+
+	if !changed {
+		return trimmed
+	}
+
+	return strings.Join(parts, ";")
+}
+
+func isSensitiveSettingKey(key string) bool {
+	normalized := normalizeSensitiveKey(key)
+	for _, fragment := range []string{
+		"secret",
+		"password",
+		"passwd",
+		"pwd",
+		"token",
+		"apikey",
+		"privatekey",
+		"clientsecret",
+		"signingkey",
+	} {
+		if strings.Contains(normalized, fragment) {
+			return true
+		}
+	}
+	return false
+}
+
+func isConnectionStringKey(key string) bool {
+	normalized := normalizeSensitiveKey(key)
+	return strings.Contains(normalized, "connectionstring") ||
+		strings.HasSuffix(normalized, "dsn")
+}
+
+func isConnectionStringPasswordKey(key string) bool {
+	switch normalizeSensitiveKey(key) {
+	case "password", "pwd", "passwd", "userpassword":
+		return true
+	default:
+		return false
+	}
+}
+
+func normalizeSensitiveKey(key string) string {
+	replacer := strings.NewReplacer(" ", "", "_", "", "-", "", ".", "", ":", "")
+	return strings.ToLower(replacer.Replace(strings.TrimSpace(key)))
 }

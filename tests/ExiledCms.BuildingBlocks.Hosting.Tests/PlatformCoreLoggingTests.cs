@@ -42,6 +42,31 @@ public sealed class PlatformCoreLoggingExtensionsTests
     }
 
     [Fact]
+    public async Task AddExiledCmsPlatformCoreLogging_FallsBackToConventionalModuleSections()
+    {
+        var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+        {
+            ApplicationName = "Sample.Module",
+            EnvironmentName = Environments.Development,
+        });
+
+        builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            ["Auth:Name"] = "auth-service",
+            ["PlatformCore:BaseUrl"] = "http://platform-core.internal:8080",
+        });
+
+        builder.AddExiledCmsPlatformCoreLogging();
+
+        await using var app = builder.Build();
+        var options = app.Services.GetRequiredService<IOptions<PlatformCoreLogForwardingOptions>>().Value;
+
+        Assert.Equal("http://platform-core.internal:8080", options.BaseUrl);
+        Assert.Equal("auth-service", options.ModuleId);
+        Assert.Equal("auth-service", options.ServiceName);
+    }
+
+    [Fact]
     public void PlatformCoreLogForwardingQueue_DropsOldestEntriesWhenCapacityIsExceeded()
     {
         var options = new PlatformCoreLogForwardingOptions

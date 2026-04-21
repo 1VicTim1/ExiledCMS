@@ -257,7 +257,7 @@ func (s *Server) handleListModuleConfigs(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	writeJSON(w, http.StatusOK, s.moduleConfigs.Snapshot())
+	writeJSON(w, http.StatusOK, s.moduleConfigs.SanitizedSnapshot())
 }
 
 func (s *Server) handleGetModuleConfig(w http.ResponseWriter, r *http.Request) {
@@ -272,17 +272,8 @@ func (s *Server) handleGetModuleConfig(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	view := moduleconfig.ModuleConfigView{ModuleID: moduleID}
-	if desired, ok := s.moduleConfigs.DesiredFor(moduleID); ok {
-		copy := desired
-		view.Desired = &copy
-	}
-	if reported, ok := s.moduleConfigs.ReportedFor(moduleID); ok {
-		copy := reported
-		view.Reported = &copy
-	}
-
-	if view.Desired == nil && view.Reported == nil {
+	view, ok := s.moduleConfigs.SanitizedView(moduleID)
+	if !ok {
 		writeError(w, http.StatusNotFound, errors.New("module configuration was not found"))
 		return
 	}
